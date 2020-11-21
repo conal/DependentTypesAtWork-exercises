@@ -98,8 +98,8 @@ mutual
   ... | inj₂ _ = n≤m , insert≤ v≤m a≤m
 
   ≤insert : ∀ {v a m} → m ≤* v → m ≤ a → m ≤* insert a v
-  ≤insert {lf} {a} {m} tt m≤a = tt , m≤a
-  ≤insert {nd u n v u≤n n≤v} {a} {m} (m≤u , m≤n) m≤a with total a n
+  ≤insert {lf} tt m≤a = tt , m≤a
+  ≤insert {nd u n v u≤n n≤v} {a} (m≤u , m≤n) m≤a with total a n
   ... | inj₁ _ = ≤insert m≤u m≤a , m≤n
   ... | inj₂ _ = m≤u , m≤n
 
