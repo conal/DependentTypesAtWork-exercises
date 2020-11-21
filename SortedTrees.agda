@@ -1,5 +1,6 @@
 -- Section 6.1
 
+open import Level
 open import Relation.Binary
 
 module SortedTrees {c ℓ≈ ℓ≤} (totalOrder : TotalOrder c ℓ≈ ℓ≤) where
@@ -53,3 +54,12 @@ sorted-insert a lf s = (tt , tt) , (tt , tt)
 sorted-insert a (nd u m v) ((su , u≤m) , (v≤m , sv)) with total a m
 ... | inj₁ a≤m = (sorted-insert a u su , insert∀≤ a≤m u≤m)  , (v≤m , sv)
 ... | inj₂ m≤a = (su , u≤m) , (insert≤∀ m≤a v≤m , sorted-insert a v sv)
+
+record ST : Set (c ⊔ ℓ≤) where
+  constructor st
+  field
+    tree : T
+    sorted : Sorted tree
+
+insertST : (a : A) → ST → ST
+insertST a (st tree sorted) = st _ (sorted-insert a tree sorted)
