@@ -37,6 +37,8 @@ private
     m n o : A
     u v t : T
 
+
+
 *-trans : ∀ {u n o} → u *≤ n → n ≤ o → u *≤ o
 *-trans {lf} _ _ = tt
 *-trans {nd u m v _ _} (m≤n , v≤n) n≤o = trans m≤n n≤o , *-trans v≤n n≤o
@@ -61,7 +63,23 @@ t→ut#≤ {nd u m v u≤m m≤v} (m≤n , v≤n) =
 
 t→ut-sorted : (t : T) -> Sorted (t→ut t)
 t→ut-sorted lf = tt
-
 t→ut-sorted (nd u m v u≤m m≤v) =
     (t→ut-sorted u , t→ut#≤ u≤m)
   , (≤#t→ut m≤v , t→ut-sorted v )
+
+mutual
+  ut-sorted→t : {ut : UT} -> Sorted ut -> T
+  ut-sorted→t {ulf} _ = lf
+  ut-sorted→t {und u m v} ((su , u≤m) , (m≤v , sv)) =
+    nd (ut-sorted→t su) m (ut-sorted→t sv)
+       (#≤→*≤ u≤m su) (≤#→≤* m≤v sv)
+
+  #≤→*≤ : ∀ {u : UT} {m} → u #≤ m → (su : Sorted u) → ut-sorted→t su *≤ m
+  #≤→*≤ {ulf} tt tt = tt
+  #≤→*≤ {und u n v} (u≤m , n≤m , v≤m) ((su , u≤n) , (n≤v , sv)) =
+    n≤m , #≤→*≤ v≤m sv
+
+  ≤#→≤* : ∀ {v : UT} {m} → m ≤# v → (sv : Sorted v) → m ≤* ut-sorted→t sv
+  ≤#→≤* {ulf} tt tt = tt
+  ≤#→≤* {und u n v} (m≤u , m≤n , m≤v) ((su , u≤n) , (n≤v , sv)) =
+    ≤#→≤* m≤u su , m≤n
