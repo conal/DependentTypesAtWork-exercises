@@ -37,8 +37,6 @@ private
     m n o : A
     u v t : T
 
-
-
 *-trans : ∀ {u n o} → u *≤ n → n ≤ o → u *≤ o
 *-trans {lf} _ _ = tt
 *-trans {nd u m v _ _} (m≤n , v≤n) n≤o = trans m≤n n≤o , *-trans v≤n n≤o
@@ -83,3 +81,25 @@ mutual
   ≤#→≤* {ulf} tt tt = tt
   ≤#→≤* {und u n v} (m≤u , m≤n , m≤v) ((su , u≤n) , (n≤v , sv)) =
     ≤#→≤* m≤u su , m≤n
+
+
+mutual
+
+  insert : A → T → T
+  insert a lf = nd lf a lf tt tt
+  insert a (nd u n v u≤n n≤v) with total a n
+  ... | inj₁ a≤n = nd (insert a u) n v (insert≤ u≤n a≤n) n≤v
+  ... | inj₂ n≤a = nd u n (insert a v) u≤n (≤insert n≤v n≤a)
+
+  insert≤ : ∀ {u a m} → u *≤ m → a ≤ m → insert a u *≤ m
+  insert≤ {lf} tt a≤m = a≤m , tt
+  insert≤ {nd u n v u≤n n≤v} {a} (n≤m , v≤m) a≤m with total a n
+  ... | inj₁ _ = n≤m , v≤m
+  ... | inj₂ _ = n≤m , insert≤ v≤m a≤m
+
+  ≤insert : ∀ {v a m} → m ≤* v → m ≤ a → m ≤* insert a v
+  ≤insert {lf} {a} {m} tt m≤a = tt , m≤a
+  ≤insert {nd u n v u≤n n≤v} {a} {m} (m≤u , m≤n) m≤a with total a n
+  ... | inj₁ _ = ≤insert m≤u m≤a , m≤n
+  ... | inj₂ _ = m≤u , m≤n
+
