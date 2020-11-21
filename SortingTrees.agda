@@ -31,7 +31,6 @@ Sorted (nd u m v) = (Sorted u × u *≤ m) × (m ≤* v × Sorted v)
 
 insert : A → T → T
 insert a lf = nd lf a lf
-
 insert a (nd u m v) with total a m
 ... | inj₁ _ = nd (insert a u) m v
 ... | inj₂ _ = nd u m (insert a v)
