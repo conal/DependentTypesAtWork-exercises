@@ -13,7 +13,7 @@ data Ty : Set where
   _⟶_ : Ty → Ty → Ty
 
 infix 3 _∈_
-data _∈_ {A : Set} (x : A) : (xs : List A) → Set where
+data _∈_ {ℓ} {A : Set ℓ} (x : A) : (xs : List A) → Set where
   zero : ∀ {xs} → x ∈ x ∷ xs
   suc  : ∀ {y xs} → x ∈ xs → x ∈ y ∷ xs
 
@@ -64,4 +64,4 @@ Closed = L []
 ⟦_⟧₀ : Closed τ → ⟦ τ ⟧ₜ
 ⟦ e ⟧₀ = ⟦ e ⟧ nil
 
--- -- TODO: level polymorphism.
+-- TODO: level polymorphism.
