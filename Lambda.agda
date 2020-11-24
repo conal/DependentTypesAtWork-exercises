@@ -3,37 +3,30 @@
 -- Exercise: Define lambda terms as an inductive family indexed by the maximal
 -- number of free variables allowed in the term.
 
-open import Data.Nat
-open import Data.Fin
-open import Data.Vec
+module Lambda where
+
 open import Function
-
-private
-  variable
-    n : ℕ
-
-data L₁ : ℕ → Set where
-  Var₁ : Fin n → L₁ n
-  App₁ : L₁ n → L₁ n → L₁ n
-  Lam₁ : L₁ (suc n) → L₁ n
-
--- Try also to define typed lambda terms as an inductive family indexed by the
--- type of the term.
+open import Data.List using (List ; [] ; _∷_)
 
 data Ty : Set where
   unit : Ty
   _⟶_ : Ty → Ty → Ty
 
-Context : ℕ → Set
-Context n = Vec Ty n
+infix 3 _∈_
+data _∈_ {A : Set} (x : A) : (xs : List A) → Set where
+  zero : ∀ {xs} → x ∈ x ∷ xs
+  suc  : ∀ {y xs} → x ∈ xs → x ∈ y ∷ xs
+
+Context : Set
+Context = List Ty
 
 private
   variable
     σ τ : Ty
-    Γ : Context n
+    Γ : Context
 
-data L : Context n → Ty → Set where
-  Var : {Γ : Context n} → (i : Fin n) → L Γ (lookup Γ i)
+data L : Context → Ty → Set where
+  Var : ∀ {τ} → τ ∈ Γ  → L Γ τ
   App : L Γ (σ ⟶ τ) → L Γ σ → L Γ τ
   Lam : L (σ ∷ Γ) τ → L Γ (σ ⟶ τ)
 
@@ -43,25 +36,23 @@ open import Data.Unit
 ⟦ unit ⟧ₜ = ⊤
 ⟦ σ ⟶ τ ⟧ₜ = ⟦ σ ⟧ₜ → ⟦ τ ⟧ₜ
 
-Env : ∀ {n} → Context n → Set
-Env {n} Γ = (i : Fin n) → ⟦ lookup Γ i ⟧ₜ
+-- TODO: could we use Set in place of Ty?
 
-nil : Env []
-nil ()
+data Env : Context → Set where
+  nil : Env []
+  push : ∀ {Γ} {τ : Ty} (x : ⟦ τ ⟧ₜ) → (ρ : Env Γ) → Env (τ ∷ Γ)
 
-push : {τ : Ty} → ⟦ τ ⟧ₜ → Env Γ → Env (τ ∷ Γ)
-push x ρ zero    = x
-push x ρ (suc i) = ρ i
+lookup : ∀ {Γ τ} → τ ∈ Γ → Env Γ → ⟦ τ ⟧ₜ
+lookup zero (push x _) = x
+lookup (suc z) (push _ ρ) = lookup z ρ
 
 -- ⟦_⟧ : L Γ τ → Env Γ → ⟦ τ ⟧ₜ
--- ⟦  Var i  ⟧ ρ = ρ i
--- ⟦ App u v ⟧ ρ = (⟦ u ⟧ ρ) (⟦ v ⟧ ρ)
--- ⟦  Lam u  ⟧ ρ = λ x → ⟦ u ⟧ (push x ρ)
-
--- Rework to avoid ⟦_⟧ under λ
+-- ⟦ Var x ⟧   ρ = lookup x ρ
+-- ⟦ App u v ⟧ ρ =  (⟦ u ⟧ ρ) (⟦ v ⟧ ρ)
+-- ⟦ Lam u ⟧   ρ = λ x → ⟦ u ⟧ (push x ρ)
 
 ⟦_⟧ : L Γ τ → Env Γ → ⟦ τ ⟧ₜ
-⟦  Var i  ⟧ = (_$ i)
+⟦  Var x  ⟧ = lookup x
 ⟦ App u v ⟧ = ⟦ u ⟧ ˢ ⟦ v ⟧
 ⟦  Lam u  ⟧ = (⟦ u ⟧ ∘_) ∘ flip push
               -- λ ρ → ⟦ u ⟧ ∘ flip push ρ
@@ -73,4 +64,4 @@ Closed = L []
 ⟦_⟧₀ : Closed τ → ⟦ τ ⟧ₜ
 ⟦ e ⟧₀ = ⟦ e ⟧ nil
 
--- TODO: level polymorphism.
+-- -- TODO: level polymorphism.
